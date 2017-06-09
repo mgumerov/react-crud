@@ -1,0 +1,27 @@
+.table.data img {
+    height: 30px;
+    width: 30px;
+}
+
+.thumbnail img {
+    height: 150px;
+    width: 150px;
+}
+
+.thumbnail {
+    margin-bottom: 0;
+}
+
+.caption {
+  display: block;
+  line-height: 1.0em;
+  height: 2.2em;
+  overflow-y: hidden;
+  font-weight: bold;
+}
+
+/*
+.debug {
+display: none;
+}
+*/
