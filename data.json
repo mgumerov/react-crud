@@ -1,30 +1,45 @@
 {
-"total": 5,
-"page":
+"departments":
+[
+  {
+    "id": 1,
+    "name": "D1"
+  },
+  {
+    "id": 2,
+    "name": "D2"
+  }
+],
+"employees":
 [
  {
    "id": 1,
    "fullname": "ФИО-1",
+   "depId": 1,
    "department": "D1"
  },
  {
    "id": 2,
    "fullname": "ФИО-2",
+   "depId": 1,
    "department": "D1"
  },
  {
    "id": 3,
    "fullname": "ФИО-3",
+   "depId": 2,
    "department": "D2"
  },
  {
    "id": 4,
    "fullname": "ФИО-4",
+   "depId": 1,
    "department": "D1"
  },
  {
    "id": 5,
    "fullname": "ФИО-5",
+   "depId": 2,
    "department": "D2"
  }
 ]

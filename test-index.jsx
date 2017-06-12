@@ -1,20 +1,38 @@
 var React = require('react');
-var TableView = require('./test-tabular');
-var Pagination = require('./test-pagination');
+var PagedTableView = require('./test-paged-table');
+
+//Концепция такая: <Workspace> - для отображения всей модели данных приложения,
+// а отдельные грани (разные таблицы) проецируются в this.state.
+//Поэтому мы не имеем несколько data с полиморфной startGetPage,
+//  а в одном data имеем startGetXXX.
 var data = require('./test-data');
+var tables = [];
+tables.push({id: "emp", title: "Employees", startGetPage: data.startGetEmployees,
+    columns: ["fullname","department"]});
+tables.push({id: "dep", title: "Departments", startGetPage: data.startGetDepartments,
+    columns: ["name"]});
 
 var Workspace = React.createClass({
   render: function() {
     return (
 <div>
 
-<TableView items={this.state.items}/>
-
-<div className="col-md-12 text-center">
-
-<Pagination thisPage={this.state.page} lastPage={this.state.pageCnt} onClick={this.onPagerClick}/>
-
+<div className="col-md-12">
+<ul className="pagination pull-left">
+  {tables.map(table =>
+    <li className={`page-item view-mode ${['','active'][+(this.state.table == table)]}`}
+        key={table.id}>
+        <a className="page-link" href = "#"
+           onClick={() => this.setState((state, props) => ({table: table}))}>{table.title}</a></li>
+  )}
+</ul>
 </div>
+
+{tables.map(table =>
+<div className={`col-md-12 visible:${table == this.state.table}`} key={table.id}>
+<PagedTableView table={table} columns={table.columns}/>
+</div>
+)}
 
 </div>
     );
@@ -22,65 +40,8 @@ var Workspace = React.createClass({
 
   getInitialState: function() {
     return {
-      page: null,
-      pageCnt: null,
-      items: [],
-      filters: {}
+      table: tables[0]
     };
-  },
-
-  componentDidMount: function() {
-    this.queryData(1);
-  },
-
-  onPagerClick: function(pageNum) {
-    this.queryData(pageNum);
-  },
-
-  //Minimize island of components which are held by any pending queries after un-mounting - they will hold this thunk instead
-  onDataChange: {
-    owner: null,
-
-    process: function (result, pageNum) {
-      if (!this.owner)
-          return;
-
-      var pgcount = Math.ceil(result.total / pageSize);
-
-      //Если такой страницы уже нет, ничего не делаем и вместо этого потребуем переход на ту, которая по нашим данным есть
-      //Может получиться, что фильтр сменился за это время на гуи, и возможно придется еще раз перечитать,
-      //  но это уже забота этого следующего порожденного нами асинка, не наша
-      if (pageNum > pgcount) {
-        //Заметим, что всякий раз номер страницы уменьшается, т.е. вечный цикл невозможен. Но конечно возможно, в теории,
-        //адское торможение, если сервер будет постепенно удалять элементы, и успевать каждый раз уменьшить кол-во страниц на 1
-        //как раз тогда, когда мы решили перейти на страницу назад; todo возможно, следует после 2-3 попыток сбрасывать сразу на первую страницу.
-        //todo Ручной переход на страницу например "1" должен откючать уже запущенные такие "автоматические" коррекционные повторные переходы,
-        //  не то они отменят его действие
-        this.owner.startSetPage(pgcount, pageSize, this.state.filters);
-        return;
-      }
-
-      //note the "(" before the map declaration - without it this would be recognized as method body, not the returned value :)
-      this.owner.setState((state, props) => ({
-          items: result.page,
-          page: pageNum,
-          pageCnt: pgcount
-      }));
-    }
-  },
-
-  queryData: function(pageNum) {
-    var _this = this;
-    data.startGetPage(pageNum, pageSize, this.state.filters)
-        .then(result => _this.onDataChange.process(result, pageNum));
-  },
-
-  componentWillMount: function() {
-    this.onDataChange.owner = this;
-  },
-
-  componentWillUnmount: function() {
-    this.onDataChange.owner = null;
   }
 });
 
@@ -96,6 +57,3 @@ if (loadedStates.includes(document.readyState) && document.body) {
 } else {
   window.addEventListener('DOMContentLoaded', run, false);
 }
-
-//todo make part of component state
-var pageSize = 3;

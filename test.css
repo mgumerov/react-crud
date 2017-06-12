@@ -20,6 +20,10 @@
   font-weight: bold;
 }
 
+.visible\:false {
+  display: none;
+}
+
 /*
 .debug {
 display: none;
