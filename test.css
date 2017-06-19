@@ -1,6 +1,5 @@
-.table.data img {
-    height: 30px;
-    width: 30px;
+.table.data tr {
+    cursor: pointer;
 }
 
 .thumbnail img {

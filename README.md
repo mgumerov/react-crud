@@ -10,6 +10,8 @@ and for actually calling ReactDOM.render:
 npm install --save-dev react
 npm install --save-dev react-dom
 npm install --save-dev axios
+for bootstrap modal:
+npm install --save react-bootstrap
 
 Build with
 node_modules\.bin\webpack test-index.jsx bundle.js

@@ -1,16 +1,12 @@
 var React = require('react');
 var PagedTableView = require('./test-paged-table');
+var Modal = require('react-bootstrap').Modal;
 
 //Концепция такая: <Workspace> - для отображения всей модели данных приложения,
 // а отдельные грани (разные таблицы) проецируются в this.state.
 //Поэтому мы не имеем несколько data с полиморфной startGetPage,
 //  а в одном data имеем startGetXXX.
 var data = require('./test-data');
-var tables = [];
-tables.push({id: "emp", title: "Employees", startGetPage: data.startGetEmployees,
-    columns: ["fullname","department"]});
-tables.push({id: "dep", title: "Departments", startGetPage: data.startGetDepartments,
-    columns: ["name"]});
 
 var Workspace = React.createClass({
   render: function() {
@@ -30,7 +26,9 @@ var Workspace = React.createClass({
 
 {tables.map(table =>
 <div className={`col-md-12 visible:${table == this.state.table}`} key={table.id}>
-<PagedTableView table={table} columns={table.columns}/>
+<PagedTableView table={table} columns={table.columns} onRowClick={row => this.openModal(table, row)}/>
+{table.modalTemplate.renderTemplate(table.getModalData(this.state),
+    () => this.closeModal(table), (data) => this.saveModal(table, data))}
 </div>
 )}
 
@@ -38,12 +36,73 @@ var Workspace = React.createClass({
     );
   },
 
+  openModal: function (table, row) { this.setState(table.makeModalData(row)) },
+
+  closeModal: function (table) { this.setState(table.makeModalData(null)) },
+
+  saveModal: function(table, data) { table.saveModal(data); this.closeModal(table); },
+
   getInitialState: function() {
     return {
+      modalDepartment: null,
+      modalEmployee: null,
       table: tables[0]
     };
   }
 });
+
+//По идее это такие же компоненты, но для разнообразия буду просто функцией генерировать
+var modalForDepartments = {
+  renderTemplate: function (data, onClose, onSave) {
+    return (
+    <Modal show={Boolean(data)} onHide={onClose}>
+       <Modal.Header closeButton>
+         <Modal.Title>Edit department</Modal.Title>
+       </Modal.Header>
+       <Modal.Body>
+         <form>
+           <input type="text" label="Name" placeholder="Name of department" id="name"/>
+         </form>
+       </Modal.Body>
+       <Modal.Footer><button onClick={()=>onSave(data)}>Save</button><button onClick={onClose}>Close</button></Modal.Footer>
+     </Modal>
+     )
+  }
+};
+
+var modalForEmployees = {
+  renderTemplate: function (data, onClose, onSave) {
+    return (
+    <Modal show={Boolean(data)} onHide={onClose}>
+       <Modal.Header closeButton>
+         <Modal.Title>Edit employee</Modal.Title>
+       </Modal.Header>
+       <Modal.Body>
+         <form>
+           <input type="text" label="Name" placeholder="Employee name" id="name"/>
+         </form>
+       </Modal.Body>
+       <Modal.Footer><button onClick={()=>onSave(data)}>Save</button><button onClick={onClose}>Close</button></Modal.Footer>
+     </Modal>
+     )
+  }
+};
+
+var tables = [];
+tables.push({id: "emp", title: "Employees", startGetPage: data.startGetEmployees,
+    columns: ["fullname","department"],
+    modalTemplate: modalForEmployees,
+    makeModalData: (data) => ({modalEmployee: data}),
+    getModalData: (state) => state.modalEmployee,
+    saveModal: (data) => alert("POST Emp/"+data.id)
+    });
+tables.push({id: "dep", title: "Departments", startGetPage: data.startGetDepartments,
+    columns: ["name"],
+    modalTemplate: modalForDepartments,
+    makeModalData: (data) => ({modalDepartment: data}),
+    getModalData: (state) => state.modalDepartment,
+    saveModal: (data) => alert("POST Dep/"+data.id)
+    });
 
 function run() {
     var ReactDOM = require('react-dom');

@@ -8,7 +8,7 @@ var PagedTableView = React.createClass({
     return (
     <div>
     <div className="col-md-12">
-    <TableView items={this.state.items} columns={this.props.table.columns}/>
+    <TableView items={this.state.items} columns={this.props.table.columns} onRowClick={this.props.onRowClick}/>
     </div>
 
     <div className="col-md-12 text-center">

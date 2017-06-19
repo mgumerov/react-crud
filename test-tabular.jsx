@@ -17,7 +17,7 @@ var TableView = React.createClass({
   </thead>
   <tbody>
     {page.map((row, i) =>
-        <tr key={row.id}>
+        <tr key={row.id} onClick={() => this.props.onRowClick(row)}>
             {columns.map((column, i) =>
                 <td key={i}>
                   {column.present ? column.present(row[column.name]) : row[column.name]}
