@@ -54,7 +54,12 @@ var ModalForEmployee = React.createClass({
     //их запрашивать в таблице постранично, то и в модалке есть смысл отображать отделы
     //постранично; но мне стало лень прикручивать сюда PagedTableView
     data.startGetDepartments(1, 999999, null).then(
-      success => this.setState({_options: success.page}));
+      success => {
+        if (this.isMounted()) {
+          this.setState({_options: success.page});
+        }
+      }
+    );
   }
 });
 
