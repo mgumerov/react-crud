@@ -9,6 +9,8 @@ var ModalForEmployee = require('./test-modal-employee');
 //  а в одном data имеем startGetXXX.
 var data = require('./test-data');
 
+var tableViews = {};
+
 var Workspace = React.createClass({
   render: function() {
     return (
@@ -27,7 +29,8 @@ var Workspace = React.createClass({
 
 {tables.map(table =>
 <div className={`col-md-12 visible:${table == this.state.table}`} key={table.id}>
-<PagedTableView table={table} columns={table.columns} onRowClick={row => this.openModal(table, row)}/>
+<PagedTableView table={table} columns={table.columns} onRowClick={row => this.openModal(table, row)}
+  ref={ref => tableViews[table.id] = ref}/>
 {table.modalTemplate.renderTemplate(table.getModalData(this.state),
     () => this.closeModal(table), (data) => this.saveModal(table, data))}
 </div>
@@ -83,7 +86,12 @@ tables.push({id: "emp", title: "Employees", startGetPage: data.startGetEmployees
     modalTemplate: modalForEmployees,
     makeModalData: (data) => ({modalEmployee: data}),
     getModalData: (state) => state.modalEmployee,
-    saveModal: (data) => alert(JSON.stringify(data))
+    saveModal: (employee) => {
+        data.putEmployee(employee);
+        //можно было бы заменять строчку в таблице, но проще сделать рефреш =)
+        tableViews.emp.refresh();
+        //перезачитывать state.employee не нужно, т.к. модалка закрывается
+      }
     });
 tables.push({id: "dep", title: "Departments", startGetPage: data.startGetDepartments,
     columns: ["name"],

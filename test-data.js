@@ -11,6 +11,11 @@ result.startGetEmployees =
     (pageIdx, pageSize, filters) => startGetMockPage(pageIdx, pageSize, filters,
         result => result.data.employees);
 
+result.putEmployee =
+    function (employee) {
+        alert(JSON.stringify(employee)); //not implemented in mock
+    };
+
 var startGetMockPage =
     //returns a promise which resolves to {total, page} on success and status-text on failure
     function (pageIdx, pageSize, filters, extractor) {

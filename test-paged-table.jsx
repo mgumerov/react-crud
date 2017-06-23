@@ -31,6 +31,10 @@ var PagedTableView = React.createClass({
     this.queryData(1);
   },
 
+  refresh: function() {
+    this.queryData(this.state.page);
+  },
+
   onPagerClick: function(pageNum) {
     this.queryData(pageNum);
   },
