@@ -1,6 +1,7 @@
 var React = require('react');
-var PagedTableView = require('./test-paged-table');
 var Modal = require('react-bootstrap').Modal;
+var PagedTableView = require('./test-paged-table');
+var ModalForEmployee = require('./test-modal-employee');
 
 //Концепция такая: <Workspace> - для отображения всей модели данных приложения,
 // а отдельные грани (разные таблицы) проецируются в this.state.
@@ -54,37 +55,25 @@ var Workspace = React.createClass({
 //По идее это такие же компоненты, но для разнообразия буду просто функцией генерировать
 var modalForDepartments = {
   renderTemplate: function (data, onClose, onSave) {
-    return (
+    return data ? (
     <Modal show={Boolean(data)} onHide={onClose}>
        <Modal.Header closeButton>
          <Modal.Title>Edit department</Modal.Title>
        </Modal.Header>
        <Modal.Body>
          <form>
-           <input type="text" label="Name" placeholder="Name of department" id="name"/>
+           <input type="text" label="Name" placeholder="Name of department" id="name" value={data.name}/>
          </form>
        </Modal.Body>
        <Modal.Footer><button onClick={()=>onSave(data)}>Save</button><button onClick={onClose}>Close</button></Modal.Footer>
      </Modal>
-     )
+     ) : null
   }
 };
 
 var modalForEmployees = {
   renderTemplate: function (data, onClose, onSave) {
-    return (
-    <Modal show={Boolean(data)} onHide={onClose}>
-       <Modal.Header closeButton>
-         <Modal.Title>Edit employee</Modal.Title>
-       </Modal.Header>
-       <Modal.Body>
-         <form>
-           <input type="text" label="Name" placeholder="Employee name" id="name"/>
-         </form>
-       </Modal.Body>
-       <Modal.Footer><button onClick={()=>onSave(data)}>Save</button><button onClick={onClose}>Close</button></Modal.Footer>
-     </Modal>
-     )
+    return data ? <ModalForEmployee employee={data} onClose={onClose} onSave={onSave}/> : null
   }
 };
 
@@ -94,14 +83,14 @@ tables.push({id: "emp", title: "Employees", startGetPage: data.startGetEmployees
     modalTemplate: modalForEmployees,
     makeModalData: (data) => ({modalEmployee: data}),
     getModalData: (state) => state.modalEmployee,
-    saveModal: (data) => alert("POST Emp/"+data.id)
+    saveModal: (data) => alert(JSON.stringify(data))
     });
 tables.push({id: "dep", title: "Departments", startGetPage: data.startGetDepartments,
     columns: ["name"],
     modalTemplate: modalForDepartments,
     makeModalData: (data) => ({modalDepartment: data}),
     getModalData: (state) => state.modalDepartment,
-    saveModal: (data) => alert("POST Dep/"+data.id)
+    saveModal: (data) => alert(JSON.stringify(data))
     });
 
 function run() {
