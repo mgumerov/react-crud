@@ -40,7 +40,7 @@ var ModalForEmployee = React.createClass({
     //todo have this in state.employee instead of state; but that makes
     //setState call more complicated to support creating a new "employee" instead of
     //mutating the current one; as it is now, React takes care of it :)
-    return this.props;
+    return this.props.employee;
   },
 
   callSave: function(state) {
