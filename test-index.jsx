@@ -40,6 +40,9 @@ var Workspace = React.createClass({
     );
   },
 
+  //In actual app I'd probably re-query the selected item before displaying it
+  //in a modal, both to query less data in table (only some of the fields) and
+  //to lessen chances of concurrent modification by other user
   openModal: function (table, row) { this.setState(table.makeModalData(row)) },
 
   closeModal: function (table) { this.setState(table.makeModalData(null)) },
