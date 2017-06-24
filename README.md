@@ -13,5 +13,7 @@ npm install --save-dev axios
 for bootstrap modal:
 npm install --save react-bootstrap
 
+Or, you can just "npm install" since package.json is up-to-date now :)
+
 Build with
 node_modules\.bin\webpack test-index.jsx bundle.js
