@@ -13,18 +13,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
 public class DataService {
-    private final Map<Long,Employee> employees;
-    private final List<Employee> employeesList; //we want List, so making "employees" LinkedHashSet would not be enough
+    private final Map<Long,Integer> employeesMap;
+    private final List<Employee> employees; //we want List, so making "employees" LinkedHashSet would not be enough
 
-    private final Map<Long,Department> departments;
-    private final List<Department> departmentsList;
+    private final Map<Long,Integer> departmentsMap;
+    private final List<Department> departments;
 
     public DataService(@Value("classpath:data.json") Resource jsonFile) {
         final ObjectMapper mapper = new ObjectMapper();
@@ -34,21 +36,29 @@ public class DataService {
         } catch (IOException e) {
             throw new RuntimeException("Cannot initialize DataService", e);
         }
-        employees = mockData.employees.stream().collect(Collectors.toMap(x -> x.id, Function.identity()));
-        employeesList = mockData.employees.stream().sorted(Comparator.comparing(x -> x.fullname)).collect(Collectors.toList());
-        departments = mockData.departments.stream().collect(Collectors.toMap(x -> x.id, Function.identity()));
-        departmentsList = mockData.departments.stream().sorted(Comparator.comparing(x -> x.name)).collect(Collectors.toList());
+
+        employees = mockData.employees.stream().sorted(Comparator.comparing(x -> x.fullname)).collect(Collectors.toList());
+        employeesMap = new HashMap<>();
+        for(int i=0; i < employees.size(); i++) {
+            employeesMap.put(employees.get(i).id, i);
+        }
+
+        departments = mockData.departments.stream().sorted(Comparator.comparing(x -> x.name)).collect(Collectors.toList());
+        departmentsMap = new HashMap<>();
+        for(int i=0; i < departments.size(); i++) {
+            departmentsMap.put(departments.get(i).id, i);
+        }
     }
 
     public Page<Employee> getEmployees(int pageIdx, int pageSize) {
         synchronized (employees) {
-            return getListPage(employeesList, pageIdx, pageSize);
+            return getListPage(employees, pageIdx, pageSize);
         }
     }
 
     public Page<Department> getDepartments(int pageIdx, int pageSize) {
         synchronized (departments) {
-            return getListPage(departmentsList, pageIdx, pageSize);
+            return getListPage(departments, pageIdx, pageSize);
         }
     }
 
@@ -63,5 +73,25 @@ public class DataService {
                     Math.min(pageSize * pageIdx, list.size())));
         }
         return p;
+    }
+
+    //locks employees then departments; make sure no other method locks them in reverse order
+    public void editEmployee(long id, String fullname, Long depId) {
+        synchronized (employees) {
+            int idx = employeesMap.get(id);
+            Employee eold = employees.get(idx);
+            Employee enew = new Employee();
+            enew.id = eold.id;
+            enew.depId = depId;
+            enew.fullname = fullname;
+            if (Objects.equals(depId, eold.depId)) {
+                enew.department = eold.department;
+            } else {
+                synchronized (departments) {
+                    enew.department = departments.get(departmentsMap.get(depId)).name;
+                }
+            }
+            employees.set(idx, enew);
+        }
     }
 }
