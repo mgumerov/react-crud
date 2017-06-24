@@ -16,11 +16,8 @@ var ModalForEmployee = React.createClass({
            <input type="text" label="Name" placeholder="Employee name" name="fullname"
            value={this.state.fullname} onChange={this.onValueChange}/>
            <select label="Department" name="depId" value={this.state.depId} onChange={this.onValueChange}>
-
-             <option value={this.props.employee.depId}>{this.props.employee.department}</option>
-
-             {/*(this.state._options || [{id: this.props.employee.depId, name: this.props.employee.department}])
-              .map(x => <option value={x.id} key={x.id}>{x.name}</option>)*/}
+             {(this.state._options || [{id: this.props.employee.depId, name: this.props.employee.department}])
+              .map(x => <option value={x.id} key={x.id}>{x.name}</option>)}
            </select>
          </form>
        </Modal.Body>

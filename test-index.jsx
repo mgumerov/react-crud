@@ -90,10 +90,11 @@ tables.push({id: "emp", title: "Employees", startGetPage: data.startGetEmployees
     makeModalData: (data) => ({modalEmployee: data}),
     getModalData: (state) => state.modalEmployee,
     saveModal: (employee) => {
-        data.putEmployee(employee);
-        //можно было бы заменять строчку в таблице, но проще сделать рефреш =)
-        tableViews.emp.refresh();
-        //перезачитывать state.employee не нужно, т.к. модалка закрывается
+        data.putEmployee(employee).then(success => {
+          //можно было бы заменять строчку в таблице, но проще сделать рефреш =)
+          tableViews.emp.refresh();
+          //перезачитывать state.employee не нужно, т.к. модалка закрывается
+        });
       }
     });
 tables.push({id: "dep", title: "Departments", startGetPage: data.startGetDepartments,
