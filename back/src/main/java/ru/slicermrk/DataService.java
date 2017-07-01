@@ -8,6 +8,7 @@ import ru.slicermrk.dto.Department;
 import ru.slicermrk.dto.Employee;
 import ru.slicermrk.dto.MockData;
 import ru.slicermrk.dto.Page;
+import ru.slicermrk.model.EntityNotFoundException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,7 +53,12 @@ public class DataService {
 
     public Page<Employee> getEmployees(int pageIdx, int pageSize) {
         synchronized (employees) {
-            return getListPage(employees, pageIdx, pageSize);
+            Page<Employee> result = getListPage(employees, pageIdx, pageSize);
+            result.page.forEach(x -> {
+                int iDep = departmentsMap.get(x.depId);
+                x.department = departments.get(iDep).name;
+            });
+            return result;
         }
     }
 
@@ -68,17 +74,20 @@ public class DataService {
         if (pageSize * (pageIdx - 1) >= list.size()) {
             p.page = Collections.emptyList();
         } else {
-            p.page = new ArrayList<>(list.subList(
-                    pageSize * (pageIdx - 1),
-                    Math.min(pageSize * pageIdx, list.size())));
+            p.page = new ArrayList<T>(list.subList(
+                    pageSize * (pageIdx - 1), Math.min(pageSize * pageIdx, list.size())));
         }
         return p;
     }
 
     //locks employees then departments; make sure no other method locks them in reverse order
-    public void editEmployee(long id, String fullname, Long depId) {
+    public void editEmployee(long id, String fullname, Long depId) throws EntityNotFoundException {
         synchronized (employees) {
-            int idx = employeesMap.get(id);
+            Integer idx = employeesMap.get(id);
+            if (idx == null) {
+                throw new EntityNotFoundException("Cannot find Employee with ID=" + id);
+            }
+
             Employee eold = employees.get(idx);
             Employee enew = new Employee();
             enew.id = eold.id;
