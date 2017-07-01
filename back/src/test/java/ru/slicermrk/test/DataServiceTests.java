@@ -1,50 +1,53 @@
 package ru.slicermrk.test;
 
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import ru.slicermrk.DataRepository;
 import ru.slicermrk.DataService;
 import ru.slicermrk.dto.Employee;
 import ru.slicermrk.dto.Page;
-import ru.slicermrk.model.EntityNotFoundException;
 
-import java.nio.charset.Charset;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = DataServiceTests.TestConfig.class)
 public class DataServiceTests {
-    //просто чтобы показать что можно и из строки
-    final static String theOnlyEmployee = "{ \"departments\": [ {\"id\": 1, \"name\": \"D1\"}, {\"id\": 2, \"name\": \"D2\"} ], " +
-            "\"employees\": [ {\"id\": 1, \"fullname\": \"ФИО-1\", \"depId\": 1}, " +
-                               "{\"id\": 2, \"fullname\": \"ФИО-2\", \"depId\": 1} ]}";
-    final static Charset UTF8 = Charset.forName("UTF-8");
+    @Autowired
+    private DataService dataService;
 
-    final DataService dataService = new DataService(new ByteArrayResource(theOnlyEmployee.getBytes(UTF8)));
+    @Autowired
+    private DataRepository dataRepositoryMock;
 
     @Test
     public void shouldFindOneEmployeeOnSecondPage() {
-        final Page<Employee> page = dataService.getEmployees(2,1);
-        assertEquals(2, page.total);
-        assertEquals(1, page.page.size());
-        assertEquals(2, page.page.iterator().next().id.longValue());
-    }
+        Page<Employee> mockResult = new Page<>();
+        mockResult.total = 1;
+        mockResult.page = Collections.singletonList(new Employee());
+        mockResult.page.iterator().next().id = 123L;
+        Mockito.when(dataRepositoryMock.getEmployees(1,1)).thenReturn(mockResult);
 
-    @Test
-    public void shouldFillDepartmentName() {
         final Page<Employee> page = dataService.getEmployees(1,1);
-        assertEquals("D1", page.page.iterator().next().department);
+        assertEquals(1, page.total);
+        assertEquals(123L, page.page.iterator().next().id.longValue());
     }
 
-    @Test(expected = EntityNotFoundException.class)
-    public void shouldThrowCheckedOnNotFound() throws EntityNotFoundException {
-        dataService.editEmployee(3, "fn", 1L);
-    }
+    static class TestConfig {
+        @Bean
+        public DataRepository getDataRepository() {
+            return Mockito.mock(DataRepository.class);
+        }
 
-    @Test
-    public void shouldApplyOnEmployeeEdit() throws EntityNotFoundException {
-        dataService.editEmployee(1, "fn", 2L);
-        assertEquals("fn", dataService.getEmployees(1, 1).page.iterator().next().fullname);
-        assertEquals(Long.valueOf(2), dataService.getEmployees(1, 1).page.iterator().next().depId);
-        assertEquals("D2", dataService.getEmployees(1, 1).page.iterator().next().department);
+        @Bean
+        public DataService getDataService() {
+            return new DataService();
+        }
     }
 }
