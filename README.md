@@ -17,3 +17,8 @@ Or, you can just "npm install" since package.json is up-to-date now :)
 
 Build with
 node_modules\.bin\webpack test-index.jsx bundle.js
+
+Test with
+cd spec
+../node_modules/.bin/webpack mainSpec.js bundle-spec.js
+npm test
